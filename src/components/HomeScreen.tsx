@@ -189,6 +189,7 @@ export default function HomeScreen() {
   };
 
   const shuffleCandidates = wishes.filter((w) => w.status === "やりたい");
+  const isCardExpanded = selectedWishId !== null;
 
   if (loading) {
     return (
@@ -320,6 +321,7 @@ export default function HomeScreen() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           panels={STATUSES.map((status) => renderCardList(status))}
+          swipeEnabled={!isCardExpanded}
         />
       </div>
 

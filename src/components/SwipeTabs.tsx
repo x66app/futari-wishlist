@@ -7,19 +7,21 @@ type Props = {
   activeTab: string;
   onTabChange: (tab: string) => void;
   panels: ReactNode[];
+  swipeEnabled?: boolean;
 };
 
-export default function SwipeTabs({ activeTab, onTabChange, panels }: Props) {
+export default function SwipeTabs({ activeTab, onTabChange, panels, swipeEnabled = true }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
   const startY = useRef(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
   const lockedAxis = useRef<"x" | "y" | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(375);
 
-  const currentIndex = STATUSES.indexOf(activeTab as typeof STATUSES[number]);
+  // マウスドラッグ用
+  const isMouseDown = useRef(false);
 
   useEffect(() => {
     const updateWidth = () => {
@@ -32,24 +34,24 @@ export default function SwipeTabs({ activeTab, onTabChange, panels }: Props) {
     return () => window.removeEventListener("resize", updateWidth);
   }, []);
 
-  // --- 共通ロジック ---
-  const onDragStart = (clientX: number, clientY: number) => {
-    if (isAnimating) return;
+  const currentIndex = STATUSES.indexOf(activeTab as (typeof STATUSES)[number]);
+
+  const handleDragStart = (clientX: number, clientY: number) => {
+    if (!swipeEnabled || isAnimating) return;
     startX.current = clientX;
     startY.current = clientY;
-    setIsDragging(true);
-    setDragOffset(0);
     lockedAxis.current = null;
+    setIsDragging(true);
   };
 
-  const onDragMove = (clientX: number, clientY: number) => {
-    if (!isDragging || isAnimating) return;
+  const handleDragMove = (clientX: number, clientY: number) => {
+    if (!swipeEnabled || !isDragging || isAnimating) return;
 
     const diffX = clientX - startX.current;
     const diffY = clientY - startY.current;
 
     if (!lockedAxis.current) {
-      if (Math.abs(diffX) > 8 || Math.abs(diffY) > 8) {
+      if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
         lockedAxis.current = Math.abs(diffX) > Math.abs(diffY) ? "x" : "y";
       }
       return;
@@ -57,91 +59,95 @@ export default function SwipeTabs({ activeTab, onTabChange, panels }: Props) {
 
     if (lockedAxis.current === "y") return;
 
-    if (diffX > 0 && currentIndex === 0) {
-      setDragOffset(diffX * 0.15);
-      return;
+    let offset = diffX;
+    if (
+      (currentIndex === 0 && offset > 0) ||
+      (currentIndex === STATUSES.length - 1 && offset < 0)
+    ) {
+      offset = offset * 0.3;
     }
-    if (diffX < 0 && currentIndex === STATUSES.length - 1) {
-      setDragOffset(diffX * 0.15);
-      return;
-    }
-
-    setDragOffset(diffX);
+    setDragOffset(offset);
   };
 
-  const onDragEnd = () => {
-    if (!isDragging || isAnimating) return;
+  const handleDragEnd = () => {
+    if (!swipeEnabled || !isDragging) return;
     setIsDragging(false);
-    lockedAxis.current = null;
 
     const threshold = 60;
+    if (lockedAxis.current === "x") {
+      if (dragOffset < -threshold && currentIndex < STATUSES.length - 1) {
+        setIsAnimating(true);
+        setDragOffset(-containerWidth);
+        setTimeout(() => {
+          onTabChange(STATUSES[currentIndex + 1]);
+          setDragOffset(0);
+          setIsAnimating(false);
+        }, 250);
+        return;
+      } else if (dragOffset > threshold && currentIndex > 0) {
+        setIsAnimating(true);
+        setDragOffset(containerWidth);
+        setTimeout(() => {
+          onTabChange(STATUSES[currentIndex - 1]);
+          setDragOffset(0);
+          setIsAnimating(false);
+        }, 250);
+        return;
+      }
+    }
 
-    if (dragOffset < -threshold && currentIndex < STATUSES.length - 1) {
+    if (dragOffset !== 0) {
       setIsAnimating(true);
-      // 残りの距離をアニメーションで埋める
-      setDragOffset(-containerWidth);
-      setTimeout(() => {
-        onTabChange(STATUSES[currentIndex + 1]);
-        setDragOffset(0);
-        setIsAnimating(false);
-      }, 300);
-    } else if (dragOffset > threshold && currentIndex > 0) {
-      setIsAnimating(true);
-      setDragOffset(containerWidth);
-      setTimeout(() => {
-        onTabChange(STATUSES[currentIndex - 1]);
-        setDragOffset(0);
-        setIsAnimating(false);
-      }, 300);
-    } else {
       setDragOffset(0);
+      setTimeout(() => setIsAnimating(false), 250);
     }
   };
 
-  // --- タッチイベント ---
+  // タッチイベント
   const handleTouchStart = (e: React.TouchEvent) => {
-    onDragStart(e.touches[0].clientX, e.touches[0].clientY);
+    handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
   };
   const handleTouchMove = (e: React.TouchEvent) => {
-    onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+    handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
   };
-  const handleTouchEnd = () => {
-    onDragEnd();
-  };
+  const handleTouchEnd = () => handleDragEnd();
 
-  // --- マウスイベント（PC対応）---
+  // マウスイベント
   const handleMouseDown = (e: React.MouseEvent) => {
-    onDragStart(e.clientX, e.clientY);
+    isMouseDown.current = true;
+    handleDragStart(e.clientX, e.clientY);
   };
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    onDragMove(e.clientX, e.clientY);
+    if (!isMouseDown.current) return;
+    handleDragMove(e.clientX, e.clientY);
   };
   const handleMouseUp = () => {
-    onDragEnd();
+    isMouseDown.current = false;
+    handleDragEnd();
   };
   const handleMouseLeave = () => {
-    if (isDragging) onDragEnd();
+    if (isMouseDown.current) {
+      isMouseDown.current = false;
+      handleDragEnd();
+    }
   };
 
-  // --- タブクリック ---
-  const handleTabClick = (status: string) => {
+  const handleTabClick = (tab: string) => {
     if (isAnimating) return;
-    const targetIndex = STATUSES.indexOf(status as typeof STATUSES[number]);
+    const targetIndex = STATUSES.indexOf(tab as (typeof STATUSES)[number]);
     if (targetIndex === currentIndex) return;
-    onTabChange(status);
-    setDragOffset(0);
+
+    setIsAnimating(true);
+    setDragOffset(targetIndex > currentIndex ? -containerWidth : containerWidth);
+    setTimeout(() => {
+      onTabChange(tab);
+      setDragOffset(0);
+      setIsAnimating(false);
+    }, 250);
   };
 
-  // translateX 計算
-  const baseTranslateX = -(currentIndex * containerWidth);
-  const translateX = baseTranslateX + dragOffset;
-
-  // インジケーター位置
-  const indicatorOffset =
-    (currentIndex * 100) / STATUSES.length -
-    (dragOffset / containerWidth) * (100 / STATUSES.length);
+  const baseTranslate = -currentIndex * containerWidth;
+  const totalTranslate = baseTranslate + dragOffset;
 
   return (
     <div>
@@ -151,19 +157,22 @@ export default function SwipeTabs({ activeTab, onTabChange, panels }: Props) {
           <button
             key={status}
             onClick={() => handleTabClick(status)}
-            className={`flex-1 py-3 text-sm font-medium transition-colors duration-300 ${
+            className={`flex-1 py-3 text-sm font-medium transition-colors ${
               activeTab === status ? "text-gray-800" : "text-gray-400"
             }`}
           >
             {status}
           </button>
         ))}
+        {/* インジケーター */}
         <div
-          className="absolute bottom-0 h-0.5 bg-gray-800"
+          className="absolute bottom-0 h-0.5 bg-gray-800 transition-all duration-250"
           style={{
             width: `${100 / STATUSES.length}%`,
-            transform: `translateX(${indicatorOffset}%)`,
-            transition: isDragging ? "none" : "transform 0.3s ease-out",
+            transform: `translateX(${
+              currentIndex * 100 + (containerWidth ? (-dragOffset / containerWidth) * -100 : 0)
+            }%)`,
+            transitionProperty: isAnimating ? "transform" : "none",
           }}
         />
       </div>
@@ -171,7 +180,7 @@ export default function SwipeTabs({ activeTab, onTabChange, panels }: Props) {
       {/* パネルコンテナ */}
       <div
         ref={containerRef}
-        className="overflow-hidden select-none"
+        className="overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -179,20 +188,19 @@ export default function SwipeTabs({ activeTab, onTabChange, panels }: Props) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
-        style={{ cursor: isDragging ? "grabbing" : "grab" }}
       >
         <div
           className="flex"
           style={{
-            width: `${STATUSES.length * 100}%`,
-            transform: `translateX(${translateX}px)`,
-            transition: isDragging ? "none" : "transform 0.3s ease-out",
+            transform: `translateX(${totalTranslate}px)`,
+            transition: isAnimating ? "transform 250ms ease-out" : "none",
           }}
         >
           {panels.map((panel, i) => (
             <div
               key={i}
-              style={{ width: `${100 / STATUSES.length}%`, minHeight: "60vh" }}
+              className="min-h-[200px]"
+              style={{ minWidth: containerWidth || "100%", width: containerWidth || "100%" }}
             >
               {panel}
             </div>
