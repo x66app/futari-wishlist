@@ -19,8 +19,6 @@ export default function SwipeTabs({ activeTab, onTabChange, panels, swipeEnabled
   const [isAnimating, setIsAnimating] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const lockedAxis = useRef<"x" | "y" | null>(null);
-
-  // マウスドラッグ用
   const isMouseDown = useRef(false);
 
   useEffect(() => {
@@ -103,7 +101,6 @@ export default function SwipeTabs({ activeTab, onTabChange, panels, swipeEnabled
     }
   };
 
-  // タッチイベント
   const handleTouchStart = (e: React.TouchEvent) => {
     handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
   };
@@ -112,7 +109,6 @@ export default function SwipeTabs({ activeTab, onTabChange, panels, swipeEnabled
   };
   const handleTouchEnd = () => handleDragEnd();
 
-  // マウスイベント
   const handleMouseDown = (e: React.MouseEvent) => {
     isMouseDown.current = true;
     handleDragStart(e.clientX, e.clientY);
@@ -164,7 +160,6 @@ export default function SwipeTabs({ activeTab, onTabChange, panels, swipeEnabled
             {status}
           </button>
         ))}
-        {/* インジケーター */}
         <div
           className="absolute bottom-0 h-0.5 bg-gray-800 transition-all duration-250"
           style={{
@@ -177,10 +172,10 @@ export default function SwipeTabs({ activeTab, onTabChange, panels, swipeEnabled
         />
       </div>
 
-      {/* パネルコンテナ */}
+      {/* スワイプ検知エリア（パネルの外側も含む） */}
       <div
         ref={containerRef}
-        className="overflow-hidden"
+        className="overflow-hidden min-h-[60vh]"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -199,7 +194,6 @@ export default function SwipeTabs({ activeTab, onTabChange, panels, swipeEnabled
           {panels.map((panel, i) => (
             <div
               key={i}
-              className="min-h-[200px]"
               style={{ minWidth: containerWidth || "100%", width: containerWidth || "100%" }}
             >
               {panel}

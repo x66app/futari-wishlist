@@ -20,7 +20,6 @@ import FilterPanel, {
 import Timeline from "./Timeline";
 import RewardSettings from "./RewardSettings";
 
-/* ============ ソート定義 ============ */
 const SORT_OPTIONS = [
   { key: "motivation_desc", label: "モチベ高い順" },
   { key: "motivation_asc", label: "モチベ低い順" },
@@ -39,13 +38,11 @@ function applySortToList(list: Wish[], key: string): Wish[] {
       return sorted.sort((a, b) => a.motivation - b.motivation);
     case "created_desc":
       return sorted.sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
     case "created_asc":
       return sorted.sort(
-        (a, b) =>
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
     case "budget_asc":
       return sorted.sort((a, b) => a.budget - b.budget);
@@ -56,7 +53,6 @@ function applySortToList(list: Wish[], key: string): Wish[] {
   }
 }
 
-/* ============ フィルター ============ */
 function applyFilter(list: Wish[], f: FilterState): Wish[] {
   return list.filter((w) => {
     if (f.category !== "全部" && w.category !== f.category) return false;
@@ -68,15 +64,12 @@ function applyFilter(list: Wish[], f: FilterState): Wish[] {
   });
 }
 
-/* ============ 次これどう？ロジック ============ */
 function pickSuggestion(wishes: Wish[], doneWish: Wish): Wish | null {
   const candidates = wishes.filter(
     (w) => w.status === "やりたい" && w.id !== doneWish.id
   );
   if (candidates.length === 0) return null;
-  const diffCategory = candidates.filter(
-    (c) => c.category !== doneWish.category
-  );
+  const diffCategory = candidates.filter((c) => c.category !== doneWish.category);
   const pool = diffCategory.length > 0 ? diffCategory : candidates;
   const sorted = [...pool].sort((a, b) => b.motivation - a.motivation);
   const topMotivation = sorted[0].motivation;
@@ -84,7 +77,6 @@ function pickSuggestion(wishes: Wish[], doneWish: Wish): Wish | null {
   return top[Math.floor(Math.random() * top.length)];
 }
 
-/* ============ メインコンポーネント ============ */
 export default function HomeScreen() {
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [activeTab, setActiveTab] = useState("やりたい");
@@ -154,8 +146,7 @@ export default function HomeScreen() {
       return (
         <div className="flex items-center justify-center h-40">
           <p className="text-gray-400 text-sm">
-            {status === "やりたい" &&
-              (filterActive ? "該当なし" : "＋から追加しよう")}
+            {status === "やりたい" && (filterActive ? "該当なし" : "＋から追加しよう")}
             {status === "計画中" && "まだなし"}
             {status === "達成！" && "これから！"}
           </p>
@@ -202,10 +193,7 @@ export default function HomeScreen() {
   if (showAddForm) {
     return (
       <AddWishForm
-        onAdded={() => {
-          setShowAddForm(false);
-          fetchWishes();
-        }}
+        onAdded={() => { setShowAddForm(false); fetchWishes(); }}
         onClose={() => setShowAddForm(false)}
       />
     );
@@ -222,10 +210,10 @@ export default function HomeScreen() {
   const doneCount = wishes.filter((w) => w.status === "達成！").length;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* ヘッダー */}
-      <div className="bg-white pt-12 pb-2 px-4">
-        <h1 className="text-lg font-bold text-gray-800 text-center">
+    <div className="min-h-screen bg-gray-50 pb-14">
+      {/* ヘッダー（タイトにした） */}
+      <div className="bg-white pt-8 pb-1 px-4">
+        <h1 className="text-base font-bold text-gray-800 text-center">
           Wishboard
         </h1>
       </div>
@@ -255,27 +243,19 @@ export default function HomeScreen() {
         </button>
       </div>
 
-      {/* フィルター & ソートボタン */}
+      {/* フィルター & ソート */}
       <div className="bg-white px-4 pb-2 flex gap-2 items-center">
         <button
-          onClick={() => {
-            setShowFilter(!showFilter);
-            setShowSort(false);
-          }}
+          onClick={() => { setShowFilter(!showFilter); setShowSort(false); }}
           className={`px-3 py-1.5 rounded-full text-xs transition ${
-            filterActive
-              ? "bg-gray-800 text-white"
-              : "text-gray-500 bg-gray-100"
+            filterActive ? "bg-gray-800 text-white" : "text-gray-500 bg-gray-100"
           }`}
         >
           🔽 絞り込み{filterActive && "中"}
         </button>
         <div className="relative">
           <button
-            onClick={() => {
-              setShowSort(!showSort);
-              setShowFilter(false);
-            }}
+            onClick={() => { setShowSort(!showSort); setShowFilter(false); }}
             className="px-3 py-1.5 rounded-full text-xs bg-gray-100 text-gray-500 transition hover:bg-gray-200"
           >
             ↕️ {SORT_OPTIONS.find((o) => o.key === sortKey)?.label}
@@ -285,10 +265,7 @@ export default function HomeScreen() {
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.key}
-                  onClick={() => {
-                    setSortKey(opt.key);
-                    setShowSort(false);
-                  }}
+                  onClick={() => { setSortKey(opt.key); setShowSort(false); }}
                   className={`block w-full text-left px-4 py-2 text-sm transition ${
                     sortKey === opt.key
                       ? "bg-gray-100 font-medium text-gray-800"
@@ -307,10 +284,7 @@ export default function HomeScreen() {
       {showFilter && (
         <FilterPanel
           filter={filter}
-          onApply={(f) => {
-            setFilter(f);
-            setShowFilter(false);
-          }}
+          onApply={(f) => { setFilter(f); setShowFilter(false); }}
           onClose={() => setShowFilter(false)}
         />
       )}
@@ -355,10 +329,7 @@ export default function HomeScreen() {
       {showShuffle && (
         <ShufflePopup
           wishes={shuffleCandidates}
-          onAccept={() => {
-            setShowShuffle(false);
-            fetchWishes();
-          }}
+          onAccept={() => { setShowShuffle(false); fetchWishes(); }}
           onClose={() => setShowShuffle(false)}
         />
       )}
