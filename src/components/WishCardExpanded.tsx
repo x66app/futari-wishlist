@@ -19,6 +19,7 @@ function getCategoryIcon(category: string) {
 }
 
 export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Props) {
+  const [title, setTitle] = useState(wish.title);
   const [category, setCategory] = useState(wish.category);
   const [distance, setDistance] = useState(wish.distance);
   const [timing, setTiming] = useState(wish.timing);
@@ -29,8 +30,10 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleSave = async () => {
+    if (!title.trim()) return;
     setSaving(true);
     const updates: Record<string, unknown> = {
+      title: title.trim(),
       category,
       distance,
       timing,
@@ -62,16 +65,26 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
     <div className="mx-4 mb-3 p-4 rounded-xl border border-gray-300 bg-white shadow-md">
       {/* ヘッダー */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">{getCategoryIcon(wish.category)}</span>
-          <p className="font-medium text-gray-800">{wish.title}</p>
-        </div>
+        <span className="text-xl">{getCategoryIcon(wish.category)}</span>
         <button
           onClick={onClose}
           className="text-gray-400 text-sm hover:text-gray-600 transition"
         >
           ✕
         </button>
+      </div>
+
+      {/* タイトル編集 */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          タイトル
+        </label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-gray-500 transition"
+        />
       </div>
 
       {/* ジャンル選択 */}
@@ -106,7 +119,7 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
       <div className="mt-4 flex gap-2">
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || !title.trim()}
           className="flex-1 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition disabled:opacity-50"
         >
           {saving ? "保存中..." : "保存"}
