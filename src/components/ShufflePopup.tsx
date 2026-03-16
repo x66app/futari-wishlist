@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Wish, CATEGORIES } from "@/types";
 import { supabase } from "@/lib/supabase";
 
@@ -19,32 +19,34 @@ function renderStars(motivation: number): string {
   return "★".repeat(motivation) + "☆".repeat(5 - motivation);
 }
 
-function pickRandom(wishes: Wish[]): Wish {
-  return wishes[Math.floor(Math.random() * wishes.length)];
+function pickResult(wishes: Wish[]): Wish {
+  const sorted = [...wishes].sort((a, b) => b.motivation - a.motivation);
+  const topMotivation = sorted[0].motivation;
+  const topCandidates = sorted.filter((w) => w.motivation === topMotivation);
+  return topCandidates[Math.floor(Math.random() * topCandidates.length)];
 }
 
 export default function ShufflePopup({ wishes, onAccept, onClose }: Props) {
   const [displayWish, setDisplayWish] = useState<Wish>(wishes[0]);
   const [spinning, setSpinning] = useState(true);
   const [finalWish, setFinalWish] = useState<Wish | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    // 最終結果を先に決める（モチベ高い順優先）
-    const sorted = [...wishes].sort((a, b) => b.motivation - a.motivation);
-    const topMotivation = sorted[0].motivation;
-    const topCandidates = sorted.filter((w) => w.motivation === topMotivation);
-    const result = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+  const startSpin = useCallback(() => {
+    const result = pickResult(wishes);
     setFinalWish(result);
+    setSpinning(true);
 
-    // ルーレット演出
     let speed = 80;
     let count = 0;
-    const maxCount = 15;
+    const maxCount = wishes.length === 1 ? 5 : 15;
 
     const spin = () => {
-      intervalRef.current = setTimeout(() => {
-        setDisplayWish(pickRandom(wishes));
+      timeoutRef.current = setTimeout(() => {
+        if (wishes.length > 1) {
+          const randomIndex = Math.floor(Math.random() * wishes.length);
+          setDisplayWish(wishes[randomIndex]);
+        }
         count++;
 
         if (count >= maxCount) {
@@ -59,9 +61,13 @@ export default function ShufflePopup({ wishes, onAccept, onClose }: Props) {
     };
 
     spin();
+  }, [wishes]);
+
+  useEffect(() => {
+    startSpin();
 
     return () => {
-      if (intervalRef.current) clearTimeout(intervalRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
@@ -75,35 +81,8 @@ export default function ShufflePopup({ wishes, onAccept, onClose }: Props) {
   };
 
   const handleRetry = () => {
-    setSpinning(true);
-
-    const sorted = [...wishes].sort((a, b) => b.motivation - a.motivation);
-    const topMotivation = sorted[0].motivation;
-    const topCandidates = sorted.filter((w) => w.motivation === topMotivation);
-    const result = topCandidates[Math.floor(Math.random() * topCandidates.length)];
-    setFinalWish(result);
-
-    let speed = 80;
-    let count = 0;
-    const maxCount = 15;
-
-    const spin = () => {
-      intervalRef.current = setTimeout(() => {
-        setDisplayWish(pickRandom(wishes));
-        count++;
-
-        if (count >= maxCount) {
-          setDisplayWish(result);
-          setSpinning(false);
-          return;
-        }
-
-        speed += 30;
-        spin();
-      }, speed);
-    };
-
-    spin();
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    startSpin();
   };
 
   return (
@@ -136,19 +115,19 @@ export default function ShufflePopup({ wishes, onAccept, onClose }: Props) {
           <div className="flex gap-3">
             <button
               onClick={handleRetry}
-              className="flex-1 py-2 text-gray-400 text-sm hover:text-gray-600 transition"
+              className="flex-1 py-2 text-gray-400 text-sm hover:text-gray-600 active:text-gray-800 transition"
             >
               もう1回
             </button>
             <button
               onClick={onClose}
-              className="flex-1 py-2 text-gray-400 text-sm hover:text-gray-600 transition"
+              className="flex-1 py-2 text-gray-400 text-sm hover:text-gray-600 active:text-gray-800 transition"
             >
               やめとく
             </button>
             <button
               onClick={handleAccept}
-              className="flex-1 py-2 bg-gray-800 text-white rounded-full text-sm hover:bg-gray-700 transition"
+              className="flex-1 py-2 bg-gray-800 text-white rounded-full text-sm hover:bg-gray-700 active:bg-gray-600 transition"
             >
               やるか！
             </button>

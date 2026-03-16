@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Wish } from "@/types";
+import { Wish, STATUSES } from "@/types";
 import ProgressBar from "./ProgressBar";
 import SwipeTabs from "./SwipeTabs";
 import WishCard from "./WishCard";
@@ -125,12 +125,90 @@ export default function HomeScreen() {
     fetchWishes();
   };
 
-  const shuffleCandidates = wishes.filter((w) => w.status === "やりたい");
+  const handleShuffle = () => {
+    const candidates = wishes.filter((w) => w.status === "やりたい");
+    if (candidates.length > 0) {
+      setShowShuffle(true);
+    }
+  };
 
-  const tabWishes = wishes.filter((w) => w.status === activeTab);
-  const filteredWishes = applyFilter(tabWishes, filter);
+  const shuffleCandidates = wishes.filter((w) => w.status === "やりたい");
   const doneCount = wishes.filter((w) => w.status === "達成！").length;
   const filterActive = isFilterActive(filter);
+
+  // 各タブのコンテンツを生成
+  const renderCardList = (status: string) => {
+    const tabWishes = wishes.filter((w) => w.status === status);
+    const filtered = applyFilter(tabWishes, filter);
+
+    return (
+      <div className="bg-gray-50">
+        {/* フィルターボタン */}
+        <div className="flex justify-end px-4 pt-2">
+          <button
+            onClick={() => setShowFilter(!showFilter)}
+            className={`text-xs px-3 py-1 rounded-full transition ${
+              filterActive
+                ? "bg-gray-800 text-white"
+                : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            {showFilter ? "🔼 絞り込み" : "🔽 絞り込み"}
+            {filterActive && !showFilter && " 🔵"}
+          </button>
+        </div>
+
+        {/* フィルターパネル（アクティブタブでのみ表示） */}
+        {showFilter && status === activeTab && (
+          <FilterPanel
+            filter={filter}
+            onApply={setFilter}
+            onClose={() => setShowFilter(false)}
+          />
+        )}
+
+        {/* フィルター適用中の表示 */}
+        {filterActive && !showFilter && (
+          <p className="text-xs text-gray-400 text-center mb-1">
+            絞り込み中
+          </p>
+        )}
+
+        {/* カードリスト */}
+        <div className="pt-1 pb-20">
+          {filtered.length === 0 ? (
+            <p className="text-center text-gray-400 text-sm mt-12">
+              {filterActive
+                ? "条件に合うものがないよ"
+                : status === "やりたい"
+                ? "やりたいことを追加しよう！"
+                : status === "計画中"
+                ? "まだ計画中のものはないよ"
+                : "達成したらここに表示されるよ！"}
+            </p>
+          ) : (
+            filtered.map((wish) =>
+              selectedWishId === wish.id ? (
+                <WishCardExpanded
+                  key={wish.id}
+                  wish={wish}
+                  onUpdate={handleUpdate}
+                  onClose={() => setSelectedWishId(null)}
+                  onDone={handleDone}
+                />
+              ) : (
+                <WishCard
+                  key={wish.id}
+                  wish={wish}
+                  onClick={() => setSelectedWishId(wish.id)}
+                />
+              )
+            )
+          )}
+        </div>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -158,7 +236,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 pb-16">
       {/* ヘッダー */}
       <div className="bg-white pt-12 pb-2 px-4">
         <h1 className="text-lg font-bold text-gray-800 text-center">
@@ -174,12 +252,10 @@ export default function HomeScreen() {
       {/* シャッフル・季節ボタン */}
       <div className="bg-white px-4 pb-3 flex gap-2">
         <button
-          onClick={() => {
-            if (shuffleCandidates.length > 0) setShowShuffle(true);
-          }}
+          onClick={handleShuffle}
           className={`flex-1 py-2 rounded-lg text-sm transition ${
             shuffleCandidates.length > 0
-              ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              ? "bg-gray-100 text-gray-600 hover:bg-gray-200 active:bg-gray-300"
               : "bg-gray-50 text-gray-300 cursor-not-allowed"
           }`}
         >
@@ -187,86 +263,26 @@ export default function HomeScreen() {
         </button>
         <button
           onClick={() => setShowSeason(true)}
-          className="flex-1 py-2 bg-gray-100 rounded-lg text-sm text-gray-600 hover:bg-gray-200 transition"
+          className="flex-1 py-2 bg-gray-100 rounded-lg text-sm text-gray-600 hover:bg-gray-200 active:bg-gray-300 transition"
         >
           🗓 季節のおすすめ
         </button>
       </div>
 
-      {/* タブ */}
+      {/* タブ＋スワイプパネル */}
       <div className="bg-white sticky top-0 z-10">
-        <SwipeTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      </div>
-
-      {/* フィルターボタン */}
-      <div className="flex justify-end px-4 pt-2">
-        <button
-          onClick={() => setShowFilter(!showFilter)}
-          className={`text-xs px-3 py-1 rounded-full transition ${
-            filterActive
-              ? "bg-gray-800 text-white"
-              : "text-gray-400 hover:text-gray-600"
-          }`}
-        >
-          {showFilter ? "🔼 絞り込み" : "🔽 絞り込み"}
-          {filterActive && !showFilter && " 🔵"}
-        </button>
-      </div>
-
-      {/* フィルターパネル */}
-      {showFilter && (
-        <FilterPanel
-          filter={filter}
-          onApply={setFilter}
-          onClose={() => setShowFilter(false)}
+        <SwipeTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          panels={STATUSES.map((status) => renderCardList(status))}
         />
-      )}
-
-      {/* フィルター適用中の表示 */}
-      {filterActive && !showFilter && (
-        <p className="text-xs text-gray-400 text-center mb-1">
-          絞り込み中
-        </p>
-      )}
-
-      {/* カードリスト */}
-      <div className="pt-1">
-        {filteredWishes.length === 0 ? (
-          <p className="text-center text-gray-400 text-sm mt-12">
-            {filterActive
-              ? "条件に合うものがないよ"
-              : activeTab === "やりたい"
-              ? "やりたいことを追加しよう！"
-              : activeTab === "計画中"
-              ? "まだ計画中のものはないよ"
-              : "達成したらここに表示されるよ！"}
-          </p>
-        ) : (
-          filteredWishes.map((wish) =>
-            selectedWishId === wish.id ? (
-              <WishCardExpanded
-                key={wish.id}
-                wish={wish}
-                onUpdate={handleUpdate}
-                onClose={() => setSelectedWishId(null)}
-                onDone={handleDone}
-              />
-            ) : (
-              <WishCard
-                key={wish.id}
-                wish={wish}
-                onClick={() => setSelectedWishId(wish.id)}
-              />
-            )
-          )
-        )}
       </div>
 
       {/* 追加ボタン */}
-      <div className="fixed bottom-12 right-4 z-20">
+      <div className="fixed bottom-16 right-4 z-20">
         <button
           onClick={() => setShowAddForm(true)}
-          className="w-14 h-14 bg-gray-800 text-white rounded-full shadow-lg text-2xl hover:bg-gray-700 transition flex items-center justify-center"
+          className="w-14 h-14 bg-gray-800 text-white rounded-full shadow-lg text-2xl hover:bg-gray-700 active:bg-gray-600 transition flex items-center justify-center"
         >
           ＋
         </button>
@@ -276,13 +292,13 @@ export default function HomeScreen() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex z-10">
         <button
           onClick={() => setShowTimeline(true)}
-          className="flex-1 py-3 text-xs text-gray-500 hover:text-gray-800 transition"
+          className="flex-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-800 active:text-gray-800 transition"
         >
           📅 タイムライン
         </button>
         <button
           onClick={() => setShowRewards(true)}
-          className="flex-1 py-3 text-xs text-gray-500 hover:text-gray-800 transition"
+          className="flex-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-800 active:text-gray-800 transition"
         >
           🎁 ごほうび
         </button>
@@ -303,7 +319,7 @@ export default function HomeScreen() {
       )}
 
       {/* シャッフルポップアップ */}
-      {showShuffle && (
+      {showShuffle && shuffleCandidates.length > 0 && (
         <ShufflePopup
           wishes={shuffleCandidates}
           onAccept={handleShuffleAccept}
