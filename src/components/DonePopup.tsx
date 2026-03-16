@@ -16,23 +16,16 @@ export default function DonePopup({ wish, onClose }: Props) {
   const [unlockedReward, setUnlockedReward] = useState<Reward | null>(null);
 
   useEffect(() => {
-    confetti({
-      particleCount: 150,
-      spread: 80,
-      origin: { y: 0.6 },
-    });
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
   }, []);
 
   const checkReward = async () => {
-    // 達成数を取得
-    const { data: doneWishes } = await supabase
+    const { data: wishes } = await supabase
       .from("wishes")
       .select("id")
       .eq("status", "達成！");
+    const doneCount = wishes?.length || 0;
 
-    const doneCount = doneWishes?.length || 0;
-
-    // 未解放のごほうびで条件を満たすものを探す
     const { data: rewards } = await supabase
       .from("rewards")
       .select("*")
@@ -43,14 +36,13 @@ export default function DonePopup({ wish, onClose }: Props) {
 
     if (rewards && rewards.length > 0) {
       const reward = rewards[0] as Reward;
-      // 解放済みにする
       await supabase
         .from("rewards")
         .update({ unlocked: true })
         .eq("id", reward.id);
-
       setUnlockedReward(reward);
       setStep("reward");
+      confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
     } else {
       setStep("done");
     }
@@ -70,88 +62,78 @@ export default function DonePopup({ wish, onClose }: Props) {
     await checkReward();
   };
 
+  if (step === "reward" && unlockedReward) {
+    return (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6">
+        <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center">
+          <p className="text-3xl mb-3">🎁</p>
+          <p className="text-lg font-bold text-gray-800 mb-2">
+            ごほうび解放！
+          </p>
+          <p className="text-sm text-gray-600 mb-1">
+            {unlockedReward.threshold}個達成の報酬：
+          </p>
+          <p className="text-base font-medium text-gray-800 mb-6">
+            {unlockedReward.content}
+          </p>
+          <button
+            onClick={() => setStep("done")}
+            className="w-full py-3 bg-gray-800 text-white rounded-xl text-sm font-medium hover:bg-gray-700 transition"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "done") {
+    return (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6">
+        <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center">
+          <p className="text-3xl mb-3">🎉</p>
+          <p className="text-lg font-bold text-gray-800 mb-6">達成！</p>
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-gray-800 text-white rounded-xl text-sm font-medium hover:bg-gray-700 transition"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6">
       <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center">
-        {step === "comment" && (
-          <>
-            <p className="text-4xl mb-3">🎉</p>
-            <p className="text-lg font-bold text-gray-800 mb-1">
-              達成おめでとう！
-            </p>
-            <p className="text-sm text-gray-500 mb-4">
-              「{wish.title}」
-            </p>
-            <p className="text-xs text-gray-400 mb-3">
-              ひとこと残す？（スキップOK）
-            </p>
-            <input
-              type="text"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="例：最高だった！"
-              className="w-full border-b-2 border-gray-300 focus:border-gray-800 outline-none bg-transparent py-2 text-gray-800 text-center mb-4"
-              autoFocus
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={handleSkip}
-                className="flex-1 py-2 text-gray-400 text-sm hover:text-gray-600 transition"
-              >
-                スキップ
-              </button>
-              <button
-                onClick={handleSave}
-                className="flex-1 py-2 bg-gray-800 text-white rounded-full text-sm hover:bg-gray-700 transition"
-              >
-                残す！
-              </button>
-            </div>
-          </>
-        )}
-
-        {step === "reward" && unlockedReward && (
-          <>
-            <p className="text-4xl mb-3">🎁</p>
-            <p className="text-lg font-bold text-gray-800 mb-1">
-              {unlockedReward.threshold}個達成おめでとう！
-            </p>
-            <p className="text-sm text-gray-500 mb-2">ごほうび解放！</p>
-            <div className="bg-pink-50 rounded-xl p-4 mb-4">
-              <p className="text-sm font-medium text-gray-800">
-                「{unlockedReward.content}」
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                confetti({
-                  particleCount: 100,
-                  spread: 70,
-                  origin: { y: 0.6 },
-                });
-                setStep("done");
-              }}
-              className="px-6 py-2 bg-gray-800 text-white rounded-full text-sm hover:bg-gray-700 transition"
-            >
-              やったー！
-            </button>
-          </>
-        )}
-
-        {step === "done" && (
-          <>
-            <p className="text-4xl mb-3">✨</p>
-            <p className="text-lg font-bold text-gray-800 mb-2">
-              ふたりの思い出がまた1つ増えたよ！
-            </p>
-            <button
-              onClick={onClose}
-              className="mt-4 px-6 py-2 bg-gray-800 text-white rounded-full text-sm hover:bg-gray-700 transition"
-            >
-              OK！
-            </button>
-          </>
-        )}
+        <p className="text-3xl mb-3">🎉</p>
+        <p className="text-lg font-bold text-gray-800 mb-2">
+          「{wish.title}」達成！
+        </p>
+        <p className="text-sm text-gray-500 mb-4">
+          ひとこと残す？
+        </p>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="感想やメモなど"
+          className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-gray-500 transition resize-none h-20"
+        />
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={handleSkip}
+            className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-xl text-sm hover:bg-gray-200 transition"
+          >
+            スキップ
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex-1 py-2 bg-gray-800 text-white rounded-xl text-sm font-medium hover:bg-gray-700 transition"
+          >
+            保存
+          </button>
+        </div>
       </div>
     </div>
   );

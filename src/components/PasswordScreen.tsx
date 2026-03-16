@@ -24,32 +24,38 @@ export default function PasswordScreen({ onSuccess }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form onSubmit={handleSubmit} className="text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-8">
-          パスワードを入力
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+      <form
+        onSubmit={handleSubmit}
+        className={`w-full max-w-xs ${shake ? "animate-shake" : ""}`}
+      >
+        <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
+          Wishboard
         </h1>
-        <div className={shake ? "animate-shake" : ""}>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setError(false);
-            }}
-            placeholder="0000"
-            className="w-48 text-center text-2xl tracking-widest border-b-2 border-gray-300 focus:border-gray-800 outline-none bg-transparent py-2 text-gray-800"
-            autoFocus
-          />
-        </div>
+        <p className="text-sm text-gray-400 text-center mb-8">
+          パスワードを入力してください
+        </p>
+        <input
+          type="password"
+          inputMode="numeric"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError(false);
+          }}
+          placeholder="••••"
+          className="w-full px-4 py-3 border border-gray-300 rounded-xl text-center text-lg tracking-widest focus:outline-none focus:border-gray-500 transition"
+        />
         {error && (
-          <p className="text-red-400 text-sm mt-3">パスワードが違うよ</p>
+          <p className="text-red-500 text-xs text-center mt-2">
+            パスワードが違います
+          </p>
         )}
         <button
           type="submit"
-          className="mt-8 px-8 py-3 bg-gray-800 text-white rounded-full text-sm hover:bg-gray-700 transition"
+          className="w-full mt-4 py-3 bg-gray-800 text-white rounded-xl text-sm font-medium hover:bg-gray-700 transition"
         >
-          入る
+          ログイン
         </button>
       </form>
     </div>

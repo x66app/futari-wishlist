@@ -9,12 +9,12 @@ type Props = {
   onSkip: () => void;
 };
 
-function getCategoryIcon(category: string): string {
+function getCategoryIcon(category: string) {
   const found = CATEGORIES.find((c) => c.label === category);
   return found ? found.icon : "📦";
 }
 
-function renderStars(motivation: number): string {
+function renderStars(motivation: number) {
   return "★".repeat(motivation) + "☆".repeat(5 - motivation);
 }
 
@@ -30,29 +30,25 @@ export default function SuggestPopup({ wish, onAccept, onSkip }: Props) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6">
       <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center">
-        <p className="text-sm text-gray-500 mb-4">次はこれ、どう？</p>
-        <div className="bg-gray-50 rounded-xl p-4 mb-4">
-          <span className="text-2xl">
-            {getCategoryIcon(wish.category)}
-          </span>
-          <p className="font-medium text-gray-800 mt-2">{wish.title}</p>
-          <p className="text-xs text-gray-400 mt-1">{wish.category}</p>
-          <p className="text-xs text-yellow-500 mt-1">
-            {renderStars(wish.motivation)}
-          </p>
-        </div>
-        <div className="flex gap-3">
+        <p className="text-sm text-gray-500 mb-3">次これどう？</p>
+        <p className="text-2xl mb-2">{getCategoryIcon(wish.category)}</p>
+        <p className="text-lg font-bold text-gray-800 mb-1">{wish.title}</p>
+        <p className="text-xs text-gray-400 mb-1">{wish.category}</p>
+        <p className="text-xs text-yellow-500 tracking-wider mb-6">
+          {renderStars(wish.motivation)}
+        </p>
+        <div className="flex gap-2">
           <button
             onClick={onSkip}
-            className="flex-1 py-2 text-gray-400 text-sm hover:text-gray-600 transition"
+            className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-xl text-sm hover:bg-gray-200 transition"
           >
             また今度
           </button>
           <button
             onClick={handleAccept}
-            className="flex-1 py-2 bg-gray-800 text-white rounded-full text-sm hover:bg-gray-700 transition"
+            className="flex-1 py-2 bg-gray-800 text-white rounded-xl text-sm font-medium hover:bg-gray-700 transition"
           >
-            いいね！
+            いいね
           </button>
         </div>
       </div>

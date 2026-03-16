@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CATEGORIES } from "@/types";
+import Slider from "./Slider";
 
 export type FilterState = {
   category: string;
@@ -19,19 +20,19 @@ export const DEFAULT_FILTER: FilterState = {
   motivationMin: 1,
 };
 
-export function isFilterActive(filter: FilterState): boolean {
+export function isFilterActive(f: FilterState): boolean {
   return (
-    filter.category !== "全部" ||
-    filter.distanceMax !== 5 ||
-    filter.timingMax !== 5 ||
-    filter.budgetMax !== 5 ||
-    filter.motivationMin !== 1
+    f.category !== "全部" ||
+    f.distanceMax !== 5 ||
+    f.timingMax !== 5 ||
+    f.budgetMax !== 5 ||
+    f.motivationMin !== 1
   );
 }
 
 type Props = {
   filter: FilterState;
-  onApply: (filter: FilterState) => void;
+  onApply: (f: FilterState) => void;
   onClose: () => void;
 };
 
@@ -44,31 +45,24 @@ export default function FilterPanel({ filter, onApply, onClose }: Props) {
 
   const handleApply = () => {
     onApply({ category, distanceMax, timingMax, budgetMax, motivationMin });
-    onClose();
   };
 
   const handleClear = () => {
-    setCategory("全部");
-    setDistanceMax(5);
-    setTimingMax(5);
-    setBudgetMax(5);
-    setMotivationMin(1);
     onApply(DEFAULT_FILTER);
-    onClose();
   };
 
   return (
-    <div className="mx-4 mb-3 p-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div className="bg-white border-b border-gray-200 px-4 py-4 space-y-4">
       {/* ジャンル */}
-      <div className="mb-4">
-        <span className="text-xs text-gray-500 block mb-2">ジャンル</span>
-        <div className="flex gap-2 flex-wrap">
+      <div>
+        <p className="text-sm font-medium text-gray-700 mb-2">ジャンル</p>
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setCategory("全部")}
-            className={`px-3 py-1.5 rounded-lg text-xs transition ${
+            className={`px-3 py-1 rounded-full text-xs transition ${
               category === "全部"
                 ? "bg-gray-800 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-gray-100 text-gray-500"
             }`}
           >
             全部
@@ -77,10 +71,10 @@ export default function FilterPanel({ filter, onApply, onClose }: Props) {
             <button
               key={cat.label}
               onClick={() => setCategory(cat.label)}
-              className={`px-3 py-1.5 rounded-lg text-xs transition ${
+              className={`px-3 py-1 rounded-full text-xs transition ${
                 category === cat.label
                   ? "bg-gray-800 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-500"
               }`}
             >
               {cat.icon} {cat.label}
@@ -89,97 +83,47 @@ export default function FilterPanel({ filter, onApply, onClose }: Props) {
         </div>
       </div>
 
-      {/* 距離感 */}
-      <div className="mb-4">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-xs text-gray-500">距離感（以下）</span>
-          <span className="text-xs text-gray-400">{distanceMax}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 w-12 text-right">近い</span>
-          <input
-            type="range"
-            min={1}
-            max={5}
-            value={distanceMax}
-            onChange={(e) => setDistanceMax(Number(e.target.value))}
-            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-800"
-          />
-          <span className="text-xs text-gray-400 w-12">遠い</span>
-        </div>
-      </div>
-
-      {/* いつ頃 */}
-      <div className="mb-4">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-xs text-gray-500">いつ頃（以下）</span>
-          <span className="text-xs text-gray-400">{timingMax}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 w-12 text-right">すぐ</span>
-          <input
-            type="range"
-            min={1}
-            max={5}
-            value={timingMax}
-            onChange={(e) => setTimingMax(Number(e.target.value))}
-            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-800"
-          />
-          <span className="text-xs text-gray-400 w-12">いつか</span>
-        </div>
-      </div>
-
-      {/* 予算感 */}
-      <div className="mb-4">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-xs text-gray-500">予算感（以下）</span>
-          <span className="text-xs text-gray-400">{budgetMax}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 w-12 text-right">安い</span>
-          <input
-            type="range"
-            min={1}
-            max={5}
-            value={budgetMax}
-            onChange={(e) => setBudgetMax(Number(e.target.value))}
-            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-800"
-          />
-          <span className="text-xs text-gray-400 w-12">高い</span>
-        </div>
-      </div>
-
-      {/* モチベ */}
-      <div className="mb-4">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-xs text-gray-500">モチベ（以上）</span>
-          <span className="text-xs text-gray-400">{motivationMin}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 w-12 text-right">まあまあ</span>
-          <input
-            type="range"
-            min={1}
-            max={5}
-            value={motivationMin}
-            onChange={(e) => setMotivationMin(Number(e.target.value))}
-            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-800"
-          />
-          <span className="text-xs text-gray-400 w-12">めっちゃ</span>
-        </div>
-      </div>
+      {/* スライダー */}
+      <Slider
+        label="距離感（以下）"
+        value={distanceMax}
+        onChange={setDistanceMax}
+        minLabel="自宅"
+        maxLabel="海外"
+      />
+      <Slider
+        label="いつ頃（以下）"
+        value={timingMax}
+        onChange={setTimingMax}
+        minLabel="今すぐ"
+        maxLabel="いつか"
+      />
+      <Slider
+        label="予算感（以下）"
+        value={budgetMax}
+        onChange={setBudgetMax}
+        minLabel="無料"
+        maxLabel="10万〜"
+      />
+      <Slider
+        label="モチベ（以上）"
+        value={motivationMin}
+        onChange={setMotivationMin}
+        minLabel="あったら"
+        maxLabel="絶対！"
+      />
 
       {/* ボタン */}
-      <div className="flex gap-3">
+      <div className="flex gap-2 pt-2">
         <button
           onClick={handleClear}
-          className="flex-1 py-2 text-gray-400 text-sm hover:text-gray-600 transition"
+          className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-xl text-sm hover:bg-gray-200 transition"
         >
           クリア
         </button>
         <button
           onClick={handleApply}
-          className="flex-1 py-2 bg-gray-800 text-white rounded-full text-sm hover:bg-gray-700 transition"
+          className="flex-1 py-2 bg-gray-800 text-white rounded-xl text-sm font-medium hover:bg-gray-700 transition"
         >
           適用
         </button>

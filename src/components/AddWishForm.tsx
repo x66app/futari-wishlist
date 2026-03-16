@@ -23,11 +23,11 @@ export default function AddWishForm({ onAdded, onClose }: Props) {
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      setError("なにしたいか入力してね");
+      setError("タイトルを入力してください");
       return;
     }
     if (!category) {
-      setError("ジャンルを選んでね");
+      setError("ジャンルを選んでください");
       return;
     }
     setError("");
@@ -45,7 +45,7 @@ export default function AddWishForm({ onAdded, onClose }: Props) {
 
     setSubmitting(false);
     if (dbError) {
-      setError("保存に失敗しました…");
+      setError("保存に失敗しました");
       return;
     }
     onAdded();
@@ -53,7 +53,6 @@ export default function AddWishForm({ onAdded, onClose }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
       <div className="bg-white pt-12 pb-3 px-4 flex items-center">
         <button
           onClick={onClose}
@@ -62,15 +61,14 @@ export default function AddWishForm({ onAdded, onClose }: Props) {
           ← 戻る
         </button>
         <h1 className="flex-1 text-center text-lg font-bold text-gray-800 pr-8">
-          やりたいこと追加
+          追加
         </h1>
       </div>
 
       <div className="px-4 pt-4 pb-8 space-y-6">
-        {/* タイトル入力 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            なにしたい？
+            タイトル
           </label>
           <input
             type="text"
@@ -81,7 +79,6 @@ export default function AddWishForm({ onAdded, onClose }: Props) {
           />
         </div>
 
-        {/* ジャンル選択 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             ジャンル
@@ -89,48 +86,21 @@ export default function AddWishForm({ onAdded, onClose }: Props) {
           <CategoryPicker selected={category} onSelect={setCategory} />
         </div>
 
-        {/* スライダー */}
-        <Slider
-          label="距離感"
-          value={distance}
-          onChange={setDistance}
-          minLabel="自宅"
-          maxLabel="海外"
-        />
-        <Slider
-          label="いつ頃"
-          value={timing}
-          onChange={setTiming}
-          minLabel="今すぐ"
-          maxLabel="いつか"
-        />
-        <Slider
-          label="予算感"
-          value={budget}
-          onChange={setBudget}
-          minLabel="無料"
-          maxLabel="10万〜"
-        />
-        <Slider
-          label="モチベ"
-          value={motivation}
-          onChange={setMotivation}
-          minLabel="あったら"
-          maxLabel="絶対！"
-        />
+        <Slider label="距離感" value={distance} onChange={setDistance} minLabel="自宅" maxLabel="海外" />
+        <Slider label="いつ頃" value={timing} onChange={setTiming} minLabel="今すぐ" maxLabel="いつか" />
+        <Slider label="予算感" value={budget} onChange={setBudget} minLabel="無料" maxLabel="10万〜" />
+        <Slider label="モチベ" value={motivation} onChange={setMotivation} minLabel="あったら" maxLabel="絶対！" />
 
-        {/* エラー */}
         {error && (
           <p className="text-red-500 text-sm text-center">{error}</p>
         )}
 
-        {/* 追加ボタン */}
         <button
           onClick={handleSubmit}
           disabled={submitting}
           className="w-full py-3 bg-gray-800 text-white rounded-xl text-sm font-medium hover:bg-gray-700 transition disabled:opacity-50"
         >
-          {submitting ? "追加中..." : "追加する！"}
+          {submitting ? "追加中..." : "追加する"}
         </button>
       </div>
     </div>

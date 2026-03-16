@@ -12,7 +12,11 @@ import DonePopup from "./DonePopup";
 import SuggestPopup from "./SuggestPopup";
 import ShufflePopup from "./ShufflePopup";
 import SeasonPopup from "./SeasonPopup";
-import FilterPanel, { FilterState, DEFAULT_FILTER, isFilterActive } from "./FilterPanel";
+import FilterPanel, {
+  FilterState,
+  DEFAULT_FILTER,
+  isFilterActive,
+} from "./FilterPanel";
 import Timeline from "./Timeline";
 import RewardSettings from "./RewardSettings";
 
@@ -87,7 +91,6 @@ export default function HomeScreen() {
   const [selectedWishId, setSelectedWishId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // UI表示切替
   const [showAddForm, setShowAddForm] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [showRewards, setShowRewards] = useState(false);
@@ -96,16 +99,13 @@ export default function HomeScreen() {
   const [showFilter, setShowFilter] = useState(false);
   const [showSort, setShowSort] = useState(false);
 
-  // フィルター & ソート
   const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER);
   const [sortKey, setSortKey] = useState("motivation_desc");
   const filterActive = isFilterActive(filter);
 
-  // ポップアップ
   const [doneWish, setDoneWish] = useState<Wish | null>(null);
   const [suggestWish, setSuggestWish] = useState<Wish | null>(null);
 
-  /* ---- データ取得 ---- */
   const fetchWishes = async () => {
     const { data } = await supabase
       .from("wishes")
@@ -119,7 +119,6 @@ export default function HomeScreen() {
     fetchWishes();
   }, []);
 
-  /* ---- ハンドラ ---- */
   const handleUpdate = () => {
     fetchWishes();
     setSelectedWishId(null);
@@ -146,7 +145,6 @@ export default function HomeScreen() {
     setSuggestWish(null);
   };
 
-  /* ---- カードリスト描画 ---- */
   const renderCardList = (status: string) => {
     const statusWishes = wishes.filter((w) => w.status === status);
     const filtered = applyFilter(statusWishes, filter);
@@ -157,11 +155,9 @@ export default function HomeScreen() {
         <div className="flex items-center justify-center h-40">
           <p className="text-gray-400 text-sm">
             {status === "やりたい" &&
-              (filterActive
-                ? "条件に合うものがないよ"
-                : "やりたいことを追加しよう！")}
-            {status === "計画中" && "まだ計画中のものはないよ"}
-            {status === "達成！" && "達成したらここに表示されるよ！"}
+              (filterActive ? "該当なし" : "＋から追加しよう")}
+            {status === "計画中" && "まだなし"}
+            {status === "達成！" && "これから！"}
           </p>
         </div>
       );
@@ -192,10 +188,8 @@ export default function HomeScreen() {
     );
   };
 
-  /* ---- シャッフル候補 ---- */
   const shuffleCandidates = wishes.filter((w) => w.status === "やりたい");
 
-  /* ---- 画面分岐 ---- */
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -231,7 +225,7 @@ export default function HomeScreen() {
       {/* ヘッダー */}
       <div className="bg-white pt-12 pb-2 px-4">
         <h1 className="text-lg font-bold text-gray-800 text-center">
-          ふたりのやりたいこと
+          Wishboard
         </h1>
       </div>
 
@@ -256,7 +250,7 @@ export default function HomeScreen() {
           onClick={() => setShowSeason(true)}
           className="flex-1 py-2 bg-gray-100 rounded-lg text-sm text-gray-600 hover:bg-gray-200 transition"
         >
-          🗓 季節のおすすめ
+          🗓 おすすめ
         </button>
       </div>
 
@@ -320,7 +314,7 @@ export default function HomeScreen() {
         />
       )}
 
-      {/* タブ & カードリスト（スワイプ対応） */}
+      {/* タブ & カードリスト */}
       <div className="bg-white sticky top-0 z-10">
         <SwipeTabs
           activeTab={activeTab}
@@ -329,7 +323,7 @@ export default function HomeScreen() {
         />
       </div>
 
-      {/* 追加ボタン（右下丸ボタン） */}
+      {/* 追加ボタン */}
       <div className="fixed bottom-16 right-4 z-20">
         <button
           onClick={() => setShowAddForm(true)}
