@@ -2,30 +2,40 @@
 
 type Props = {
   label: string;
-  min: string;
-  max: string;
   value: number;
-  onChange: (value: number) => void;
+  onChange: (v: number) => void;
+  minLabel: string;
+  maxLabel: string;
 };
 
-export default function Slider({ label, min, max, value, onChange }: Props) {
+export default function Slider({
+  label,
+  value,
+  onChange,
+  minLabel,
+  maxLabel,
+}: Props) {
   return (
-    <div className="mb-4">
+    <div
+      onTouchEnd={(e) => e.preventDefault()}
+      onMouseUp={(e) => e.preventDefault()}
+    >
       <div className="flex justify-between items-center mb-1">
-        <span className="text-xs text-gray-500">{label}</span>
-        <span className="text-xs text-gray-400">{value}</span>
+        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className="text-sm text-gray-500">{value}</span>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-400 w-12 text-right">{min}</span>
-        <input
-          type="range"
-          min={1}
-          max={5}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-800"
-        />
-        <span className="text-xs text-gray-400 w-12">{max}</span>
+      <input
+        type="range"
+        min={1}
+        max={5}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        onFocus={(e) => e.target.blur()}
+        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-800"
+      />
+      <div className="flex justify-between mt-1">
+        <span className="text-xs text-gray-400">{minLabel}</span>
+        <span className="text-xs text-gray-400">{maxLabel}</span>
       </div>
     </div>
   );
