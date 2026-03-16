@@ -57,14 +57,17 @@ export default function SwipeTabs({ activeTab, onTabChange, panels, swipeEnabled
 
     if (lockedAxis.current === "y") return;
 
-    let offset = diffX;
-    if (
-      (currentIndex === 0 && offset > 0) ||
-      (currentIndex === STATUSES.length - 1 && offset < 0)
-    ) {
-      offset = offset * 0.3;
+    // 端のタブでは動かさない
+    if (currentIndex === 0 && diffX > 0) {
+      setDragOffset(0);
+      return;
     }
-    setDragOffset(offset);
+    if (currentIndex === STATUSES.length - 1 && diffX < 0) {
+      setDragOffset(0);
+      return;
+    }
+
+    setDragOffset(diffX);
   };
 
   const handleDragEnd = () => {
@@ -172,7 +175,7 @@ export default function SwipeTabs({ activeTab, onTabChange, panels, swipeEnabled
         />
       </div>
 
-      {/* スワイプ検知エリア（パネルの外側も含む） */}
+      {/* スワイプ検知エリア */}
       <div
         ref={containerRef}
         className="overflow-hidden min-h-[60vh]"

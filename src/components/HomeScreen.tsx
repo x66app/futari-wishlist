@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Wish, STATUSES, CATEGORIES } from "@/types";
+import { Wish, STATUSES } from "@/types";
 import ProgressBar from "./ProgressBar";
 import SwipeTabs from "./SwipeTabs";
 import WishCard from "./WishCard";
@@ -211,15 +211,8 @@ export default function HomeScreen() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
-      {/* ヘッダー（タイトにした） */}
-      <div className="bg-white pt-8 pb-1 px-4">
-        <h1 className="text-base font-bold text-gray-800 text-center">
-          Wishboard
-        </h1>
-      </div>
-
-      {/* プログレスバー */}
-      <div className="bg-white">
+      {/* プログレスバー（最上部） */}
+      <div className="bg-white pt-10 pb-1">
         <ProgressBar done={doneCount} total={wishes.length} />
       </div>
 
