@@ -23,13 +23,6 @@ function pickRandom(wishes: Wish[]): Wish {
   return wishes[Math.floor(Math.random() * wishes.length)];
 }
 
-function pickResult(wishes: Wish[]): Wish {
-  const sorted = [...wishes].sort((a, b) => b.motivation - a.motivation);
-  const topMotivation = sorted[0].motivation;
-  const topCandidates = sorted.filter((w) => w.motivation === topMotivation);
-  return topCandidates[Math.floor(Math.random() * topCandidates.length)];
-}
-
 export default function ShufflePopup({ wishes, onAccept, onClose }: Props) {
   const [displayWish, setDisplayWish] = useState<Wish>(wishes[0]);
   const [spinning, setSpinning] = useState(true);
@@ -38,8 +31,10 @@ export default function ShufflePopup({ wishes, onAccept, onClose }: Props) {
 
   const startSpin = () => {
     setSpinning(true);
-    const result = pickResult(wishes);
-    setFinalWish(result);
+    setFinalWish(null);
+
+    // 完全ランダムに1つ選ぶ
+    const result = pickRandom(wishes);
 
     let speed = 80;
     let count = 0;
@@ -51,6 +46,7 @@ export default function ShufflePopup({ wishes, onAccept, onClose }: Props) {
         count++;
         if (count >= maxCount) {
           setDisplayWish(result);
+          setFinalWish(result);
           setSpinning(false);
           return;
         }
