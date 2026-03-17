@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 /* スマホでの選択ハイライトを消す */
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* 強制ライトモード */
+html {
+  color-scheme: light;
 }
 
 /* スクロールバーを薄くする */
