@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: "100 Wishboard",
   description: "100 Wishboard",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
