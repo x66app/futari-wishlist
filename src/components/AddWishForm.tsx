@@ -18,6 +18,7 @@ export default function AddWishForm({ onAdded, onClose }: Props) {
   const [timing, setTiming] = useState(3);
   const [budget, setBudget] = useState(3);
   const [motivation, setMotivation] = useState(3);
+  const [memo, setMemo] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,6 +41,7 @@ export default function AddWishForm({ onAdded, onClose }: Props) {
       timing,
       budget,
       motivation,
+      memo: memo.trim(),
       status: "やりたい",
     });
 
@@ -90,6 +92,19 @@ export default function AddWishForm({ onAdded, onClose }: Props) {
         <Slider label="いつ頃" value={timing} onChange={setTiming} minLabel="今すぐ" maxLabel="いつか" />
         <Slider label="予算感" value={budget} onChange={setBudget} minLabel="無料" maxLabel="10万〜" />
         <Slider label="モチベ" value={motivation} onChange={setMotivation} minLabel="あったら" maxLabel="絶対！" />
+
+        {/* メモ欄 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            メモ
+          </label>
+          <textarea
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
+            placeholder="詳細やアイデアなど"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-gray-500 transition resize-none h-20"
+          />
+        </div>
 
         {error && (
           <p className="text-red-500 text-sm text-center">{error}</p>

@@ -59,13 +59,12 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
   };
 
   const handleDelete = async () => {
-    await supabase.from("wishes").delete().eq("id", wish.id);
+    await supabase.from("wishes").update({ deleted: true }).eq("id", wish.id);
     onUpdate();
   };
 
   return (
     <div className="mx-4 mb-3 p-4 rounded-xl border border-gray-300 bg-white shadow-md">
-      {/* ヘッダー */}
       <div className="flex items-center justify-between mb-3">
         <span className="text-xl">{getCategoryIcon(wish.category)}</span>
         <button
@@ -76,7 +75,6 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
         </button>
       </div>
 
-      {/* タイトル編集 */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
           タイトル
@@ -89,10 +87,8 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
         />
       </div>
 
-      {/* ジャンル選択 */}
       <CategoryPicker selected={category} onSelect={setCategory} />
 
-      {/* スライダー */}
       <div className="mt-4 space-y-4">
         <Slider label="距離感" value={distance} onChange={setDistance} minLabel="自宅" maxLabel="海外" />
         <Slider label="いつ頃" value={timing} onChange={setTiming} minLabel="今すぐ" maxLabel="いつか" />
@@ -100,7 +96,6 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
         <Slider label="モチベ" value={motivation} onChange={setMotivation} minLabel="あったら" maxLabel="絶対！" />
       </div>
 
-      {/* メモ欄 */}
       <div className="mt-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
           メモ
@@ -113,7 +108,6 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
         />
       </div>
 
-      {/* ステータスボタン */}
       <div className="mt-4 flex gap-2">
         {STATUSES.map((s) => (
           <button
@@ -130,7 +124,6 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
         ))}
       </div>
 
-      {/* 保存・削除 */}
       <div className="mt-4 flex gap-2">
         <button
           onClick={handleSave}
@@ -144,7 +137,7 @@ export default function WishCardExpanded({ wish, onUpdate, onDone, onClose }: Pr
             onClick={handleDelete}
             className="flex-1 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition"
           >
-            本当に削除する
+            ゴミ箱へ
           </button>
         ) : (
           <button

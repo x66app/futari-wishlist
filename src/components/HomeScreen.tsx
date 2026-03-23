@@ -19,6 +19,7 @@ import FilterPanel, {
 } from "./FilterPanel";
 import Timeline from "./Timeline";
 import RewardSettings from "./RewardSettings";
+import Trash from "./Trash";
 
 const SORT_OPTIONS = [
   { key: "motivation_desc", label: "モチベ高い順" },
@@ -66,7 +67,7 @@ function applyFilter(list: Wish[], f: FilterState): Wish[] {
 
 function pickSuggestion(wishes: Wish[], doneWish: Wish): Wish | null {
   const candidates = wishes.filter(
-    (w) => w.status === "やりたい" && w.id !== doneWish.id
+    (w) => w.status === "やりたい" && w.id !== doneWish.id && !w.deleted
   );
   if (candidates.length === 0) return null;
   const diffCategory = candidates.filter((c) => c.category !== doneWish.category);
@@ -86,6 +87,7 @@ export default function HomeScreen() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [showRewards, setShowRewards] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
   const [showShuffle, setShowShuffle] = useState(false);
   const [showSeason, setShowSeason] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -102,6 +104,7 @@ export default function HomeScreen() {
     const { data } = await supabase
       .from("wishes")
       .select("*")
+      .eq("deleted", false)
       .order("motivation", { ascending: false });
     if (data) setWishes(data as Wish[]);
     setLoading(false);
@@ -207,11 +210,15 @@ export default function HomeScreen() {
     return <RewardSettings onClose={() => setShowRewards(false)} />;
   }
 
+  if (showTrash) {
+    return <Trash onClose={() => { setShowTrash(false); fetchWishes(); }} />;
+  }
+
   const doneCount = wishes.filter((w) => w.status === "達成！").length;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
-      {/* プログレスバー（最上部） */}
+      {/* プログレスバー */}
       <div className="bg-white pt-10 pb-1">
         <ProgressBar done={doneCount} total={wishes.length} />
       </div>
@@ -315,6 +322,12 @@ export default function HomeScreen() {
           className="flex-1 py-3 text-sm text-gray-500 hover:text-gray-800 transition"
         >
           🎁 ごほうび
+        </button>
+        <button
+          onClick={() => setShowTrash(true)}
+          className="flex-1 py-3 text-sm text-gray-500 hover:text-gray-800 transition"
+        >
+          🗑 ゴミ箱
         </button>
       </div>
 

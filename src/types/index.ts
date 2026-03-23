@@ -10,6 +10,7 @@ export type Wish = {
   done_date: string | null;
   done_comment: string | null;
   memo: string;
+  deleted: boolean;
   created_at: string;
 };
 
